@@ -2,7 +2,7 @@
    POSTS PAGE
 ============================================================ */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import axios from "axios";
 
 import GenericTable from "../components/GenericTable/GenericTable";
@@ -14,13 +14,13 @@ import { setPage, cachePageData, clearTableCache } from "../redux/tablesSlice";
 import { RootState } from "../../../app/store";
 
 /* ============================================================
-   API CONFIGURATION
+   API
 ============================================================ */
 
 const BASE_URL = "https://jsonplaceholder.typicode.com/posts";
 
 /* ============================================================
-   POSTS PAGE COMPONENT
+   COMPONENT
 ============================================================ */
 
 const PostsPage = () => {
@@ -32,16 +32,17 @@ const PostsPage = () => {
   );
 
   const [totalPages, setTotalPages] = useState(0);
-
   const [pageSize, setPageSize] = useState(25);
 
   const pageData = cachedPages[currentPage];
 
+  const fetchedRef = useRef(false);
+
   /* ============================================================
-     FETCH PAGE DATA FROM API
+     FETCH DATA
   ============================================================ */
 
-  const fetchPageData = async (pageIndex: number) => {
+  const fetchPageData = useCallback(async (pageIndex: number) => {
 
     try {
 
@@ -78,13 +79,11 @@ const PostsPage = () => {
 
     }
 
-  };
+  }, [dispatch, pageSize]);
 
   /* ============================================================
-     STRICT MODE GUARD
+     INITIAL FETCH
   ============================================================ */
-
-  const fetchedRef = React.useRef(false);
 
   useEffect(() => {
 
@@ -96,7 +95,7 @@ const PostsPage = () => {
 
     }
 
-  }, [currentPage, pageData, pageSize]);
+  }, [currentPage, pageData, fetchPageData]);
 
   /* ============================================================
      NEXT PAGE
@@ -112,12 +111,7 @@ const PostsPage = () => {
       await fetchPageData(nextPage);
     }
 
-    dispatch(
-      setPage({
-        table: "posts",
-        page: nextPage
-      })
-    );
+    dispatch(setPage({ table: "posts", page: nextPage }));
 
   };
 
@@ -135,17 +129,12 @@ const PostsPage = () => {
       await fetchPageData(prevPage);
     }
 
-    dispatch(
-      setPage({
-        table: "posts",
-        page: prevPage
-      })
-    );
+    dispatch(setPage({ table: "posts", page: prevPage }));
 
   };
 
   /* ============================================================
-     PAGE NUMBER CLICK
+     PAGE CLICK
   ============================================================ */
 
   const handlePageChange = async (pageIndex: number) => {
@@ -154,12 +143,7 @@ const PostsPage = () => {
       await fetchPageData(pageIndex);
     }
 
-    dispatch(
-      setPage({
-        table: "posts",
-        page: pageIndex
-      })
-    );
+    dispatch(setPage({ table: "posts", page: pageIndex }));
 
   };
 
@@ -173,14 +157,12 @@ const PostsPage = () => {
 
     fetchedRef.current = false;
 
-    /* CLEAR OLD CACHE */
-
     dispatch(clearTableCache("posts"));
 
   };
 
   /* ============================================================
-     RENDER TABLE
+     RENDER
   ============================================================ */
 
   return (

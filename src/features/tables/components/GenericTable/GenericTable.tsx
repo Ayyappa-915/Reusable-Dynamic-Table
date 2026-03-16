@@ -88,7 +88,6 @@ function GenericTable<T>({
 
   /* ============================================================
      AUTO MOVE TO NEXT PAGE WHEN SCROLL BOTTOM
-     (ONLY IF NEXT PAGE ALREADY CACHED)
   ============================================================ */
 
   useEffect(() => {
@@ -114,7 +113,7 @@ function GenericTable<T>({
 
     return () => element.removeEventListener("scroll", handleScroll);
 
-  }, [currentPage, cachedPages]);
+  }, [currentPage, cachedPages, onNext]); // ✅ FIXED DEPENDENCY
 
   /* ============================================================
      ACTION COLUMN
@@ -184,7 +183,7 @@ function GenericTable<T>({
   });
 
   /* ============================================================
-     SMART PAGINATION RANGE
+     PAGINATION RANGE
   ============================================================ */
 
   const getPaginationRange = (): Array<number | "..."> => {
@@ -243,7 +242,6 @@ function GenericTable<T>({
     return <FaSort size={12} opacity={0.6} />;
   };
 
-
   /* ============================================================
      RENDER
   ============================================================ */
@@ -252,7 +250,7 @@ function GenericTable<T>({
     <div className="table-wrapper">
       <div className="table-card">
 
-        {/* ================= HEADER ================= */}
+        {/* HEADER */}
 
         <div className="table-header">
           {table.getHeaderGroups().map((headerGroup) =>
@@ -291,7 +289,7 @@ function GenericTable<T>({
           )}
         </div>
 
-        {/* ================= BODY ================= */}
+        {/* BODY */}
 
         <div className="table-body" ref={tableBodyRef}>
           {table.getRowModel().rows.map((row) => (
@@ -332,72 +330,67 @@ function GenericTable<T>({
           ))}
         </div>
 
-        {/* ================= PAGINATION ================= */}
+        {/* PAGINATION */}
 
         <div className="pagination">
 
-  <button
-    onClick={onPrevious}
-    disabled={currentPage === 0}
-  >
-    Previous
-  </button>
+          <button onClick={onPrevious} disabled={currentPage === 0}>
+            Previous
+          </button>
 
-  <div className="page-numbers">
-    {getPaginationRange().map((item, index) => {
+          <div className="page-numbers">
+            {getPaginationRange().map((item, index) => {
 
-      if (item === "...") {
-        return (
-          <span key={`ellipsis-${index}`} className="ellipsis">
-            ...
-          </span>
-        );
-      }
+              if (item === "...") {
+                return (
+                  <span key={`ellipsis-${index}`} className="ellipsis">
+                    ...
+                  </span>
+                );
+              }
 
-      const pageIndex = item;
+              const pageIndex = item;
 
-      return (
-        <button
-          key={pageIndex}
-          onClick={() => onPageChange(pageIndex)}
-          className={`page-number ${
-            currentPage === pageIndex ? "active" : ""
-          }`}
-        >
-          {pageIndex + 1}
-        </button>
-      );
-    })}
-  </div>
+              return (
+                <button
+                  key={pageIndex}
+                  onClick={() => onPageChange(pageIndex)}
+                  className={`page-number ${
+                    currentPage === pageIndex ? "active" : ""
+                  }`}
+                >
+                  {pageIndex + 1}
+                </button>
+              );
+            })}
+          </div>
 
-  {/* ROWS PER PAGE (OPTIONAL FEATURE) */}
+          {pageSize && onPageSizeChange && (
+            <div className="rows-per-page">
 
-  {pageSize && onPageSizeChange && (
-    <div className="rows-per-page">
+              <span>Rows per page:</span>
 
-      <span>Rows per page:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => onPageSizeChange(Number(e.target.value))}
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
 
-      <select
-        value={pageSize}
-        onChange={(e) => onPageSizeChange(Number(e.target.value))}
-      >
-        <option value={10}>10</option>
-        <option value={25}>25</option>
-        <option value={50}>50</option>
-        <option value={100}>100</option>
-      </select>
+            </div>
+          )}
 
-    </div>
-  )}
+          <button
+            onClick={onNext}
+            disabled={currentPage >= totalPages - 1}
+          >
+            Next
+          </button>
 
-  <button
-    onClick={onNext}
-    disabled={currentPage >= totalPages - 1}
-  >
-    Next
-  </button>
-
-</div>
+        </div>
 
       </div>
     </div>
